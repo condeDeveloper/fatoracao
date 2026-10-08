@@ -1,0 +1,50 @@
+name: testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ${{ matrix.so }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        so: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # O juiz e a DEFINICAO de fatoracao: o produto dos fatores e o numero E todo
+      # fator e primo. As duas metades importam: so a primeira aceita [n] para
+      # qualquer n.
+      #
+      # E o teste de Miller e Rabin e conferido contra a definicao em TODO numero
+      # ate cem mil, e nao numa amostra. Zero erros nao e probabilidade: e
+      # conferencia exaustiva.
+      - name: testes
+        run: dotnet test testes/Fatoracao.Testes/Fatoracao.Testes.csproj -c Release --nologo -v q
+
+      - name: a fatoracao contra a definicao
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- definicao
+
+      - name: a assimetria entre achar e conferir
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- assimetria
+
+      - name: os tres metodos no mesmo numero
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- metodo
+
+      - name: o rho contra a divisao
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- rho
+
+      - name: os numeros de Carmichael contra os dois testes
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- carmichael
+
+      - name: os testes de primalidade em todo numero ate cem mil
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- primalidade
